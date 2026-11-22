@@ -568,33 +568,33 @@ with right:
             config={"displayModeBar": False}
         )
 
+    
     else:
 
-        # Initial dashboard before prediction
-
         st.markdown(
-            """
-            <div class="info-card" style="margin-top:15px;">
-
-                <div style="font-size:35px;">🏭</div>
-
-                <h3 style="color:#60A5FA !important;">
-                    Machine Monitoring System
-                </h3>
-
-                <p>
-                    Enter sensor readings and click
-                    ANALYZE MACHINE to check the machine condition.
-                </p>
-
-                <div style="font-size:28px; margin-top:12px;">
-                    ⚙️ &nbsp; 📊 &nbsp; 🔍
-                </div>
-
-            </div>
-            """,
+            '<div class="info-card">'
+            '<div style="font-size:35px;">🏭</div>'
+            '<h3 style="color:#60A5FA;">Machine Monitoring System</h3>'
+            '<p>Enter sensor readings and click ANALYZE MACHINE '
+            'to check the machine condition.</p>'
+            '<div style="font-size:28px;margin-top:12px;">'
+            '⚙️ &nbsp; 📊 &nbsp; 🔍'
+            '</div>'
+            '</div>',
             unsafe_allow_html=True
         )
+
+        st.markdown(
+            '<div class="info-card" style="margin-top:10px;">'
+            '<b style="color:#38BDF8;">5 Sensor Features</b>'
+            '<br><br>'
+            'Air Temperature • Process Temperature'
+            '<br>'
+            'Rotational Speed • Torque • Tool Wear'
+            '</div>',
+            unsafe_allow_html=True
+        )
+
 
         st.markdown(
             """
