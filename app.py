@@ -1,437 +1,300 @@
 import streamlit as st
+import pandas as pd
 import joblib
-import numpy as np
+import plotly.graph_objects as go
 
-# -----------------------------------------
-# PAGE CONFIGURATION
-# -----------------------------------------
+# ---------------- PAGE CONFIG ----------------
 
 st.set_page_config(
-    page_title="Machine Failure AI",
+    page_title="Machine Failure Detection",
     page_icon="⚙️",
-    layout="wide",
-    initial_sidebar_state="expanded"
+    layout="wide"
 )
 
-# -----------------------------------------
-# LOAD TRAINED MODEL
-# -----------------------------------------
-
-@st.cache_resource
-def load_model():
-    return joblib.load("Machine_Failure.pkl")
-
-model = load_model()
-
-# -----------------------------------------
-# CUSTOM CSS
-# -----------------------------------------
+# ---------------- CUSTOM CSS ----------------
 
 st.markdown("""
 <style>
-
 .stApp {
-    background: linear-gradient(135deg, #080d1a, #111b30);
-    color: #f1f5f9;
-}
-
-header {
-    background: transparent !important;
+    background: linear-gradient(135deg, #0b1020, #111827);
+    color: white;
 }
 
 .block-container {
     padding-top: 2rem;
-    padding-bottom: 3rem;
-    max-width: 1400px;
+    max-width: 1200px;
 }
 
-.main-title {
-    font-size: 42px;
+h1 {
+    color: #60A5FA;
     font-weight: 800;
-    color: #ffffff;
-    letter-spacing: -1px;
 }
 
 .subtitle {
-    color: #94a3b8;
-    font-size: 16px;
-    margin-bottom: 30px;
-}
-
-.section-title {
-    color: #60a5fa;
-    font-size: 21px;
-    font-weight: 700;
-    margin-bottom: 15px;
-}
-
-.metric-card {
-    background: linear-gradient(145deg, #17243a, #101a2c);
-    border: 1px solid #263b58;
-    border-radius: 16px;
-    padding: 22px;
-    min-height: 115px;
-}
-
-.metric-label {
-    color: #94a3b8;
-    font-size: 14px;
-}
-
-.metric-value {
-    color: #ffffff;
-    font-size: 27px;
-    font-weight: 800;
-    margin-top: 8px;
-}
-
-.result-card {
-    padding: 28px;
-    border-radius: 18px;
-    text-align: center;
-    margin-top: 20px;
-}
-
-.success-card {
-    background: linear-gradient(135deg, #063d35, #0b292d);
-    border: 1px solid #10b981;
-}
-
-.danger-card {
-    background: linear-gradient(135deg, #511b2a, #301622);
-    border: 1px solid #ef4444;
-}
-
-.result-heading {
-    font-size: 27px;
-    font-weight: 800;
-    color: white;
-}
-
-.result-description {
-    color: #d1d5db;
-    font-size: 15px;
-}
-
-div.stButton > button {
-    width: 100%;
-    height: 52px;
-    border-radius: 12px;
-    border: none;
-    background: linear-gradient(90deg, #2563eb, #7c3aed);
-    color: white;
+    color: #94A3B8;
     font-size: 17px;
-    font-weight: 700;
-    transition: 0.3s;
 }
 
-div.stButton > button:hover {
-    background: linear-gradient(90deg, #1d4ed8, #6d28d9);
+div[data-testid="stMetric"] {
+    background: #1E293B;
+    padding: 20px;
+    border-radius: 15px;
+    border: 1px solid #334155;
+}
+
+.stButton button {
+    background: linear-gradient(90deg, #2563EB, #06B6D4);
+    color: white;
     border: none;
+    border-radius: 10px;
+    height: 50px;
+    font-weight: bold;
+    width: 100%;
+}
+
+.stButton button:hover {
+    background: #0891B2;
     color: white;
 }
 
-[data-testid="stSidebar"] {
-    background: #0c1424;
-    border-right: 1px solid #263b58;
-}
-
-[data-testid="stSidebar"] * {
-    color: #e2e8f0;
-}
-
-div[data-baseweb="input"] input {
-    background-color: #17243a;
-    color: white;
-}
-
-div[data-baseweb="select"] > div {
-    background-color: #17243a;
-}
-
-hr {
-    border-color: #263b58;
+div[data-testid="stForm"] {
+    background: #172033;
+    padding: 25px;
+    border-radius: 15px;
+    border: 1px solid #334155;
 }
 
 </style>
 """, unsafe_allow_html=True)
 
+# ---------------- LOAD MODEL ----------------
 
-# -----------------------------------------
-# SIDEBAR
-# -----------------------------------------
+@st.cache_resource
+def load_models():
+    model = joblib.load("Machine_Failure.pkl")
+    scaler = joblib.load("Machine_Failure_Scaler.pkl")
+    return model, scaler
+
+try:
+    model, scaler = load_models()
+except Exception as e:
+    st.error(f"Model loading error: {e}")
+    st.stop()
+
+# ---------------- HEADER ----------------
+
+st.title("⚙️ Machine Failure Detection")
+
+st.markdown(
+    '<p class="subtitle">AI Powered Predictive Maintenance System | Logistic Regression</p>',
+    unsafe_allow_html=True
+)
+
+st.divider()
+
+# ---------------- SIDEBAR ----------------
 
 with st.sidebar:
+    st.title("⚙️ About Project")
 
-    st.markdown("## ⚙️ MACHINE AI")
-
-    st.caption("INTELLIGENT FAILURE PREDICTION")
-
-    st.divider()
-
-    st.markdown("### Dashboard")
-
-    st.markdown("""
-    - 🏠 Machine Overview
-    - 🔍 Failure Prediction
-    - 📊 Model Insights
+    st.write("""
+    This application predicts whether
+    an industrial machine is likely
+    to experience failure using
+    sensor-based measurements.
     """)
 
     st.divider()
 
-    st.markdown("### About Model")
+    st.subheader("Machine Learning")
+    st.write("Algorithm: Logistic Regression")
+    st.write("Dataset: Balanced Machine Failure")
+    st.write("Input Features: 5")
 
-    st.info("""
-    Algorithm: Logistic Regression
+    st.divider()
 
-    Problem: Binary Classification
+    st.caption("Predictive Maintenance System")
 
-    Output: Machine Failure / No Failure
-    """)
+# ---------------- INPUT SECTION ----------------
 
-    st.caption("AI Powered Predictive Maintenance")
+st.subheader("📊 Machine Sensor Parameters")
 
+st.write("Enter the current machine sensor readings below.")
 
-# -----------------------------------------
-# HEADER
-# -----------------------------------------
+with st.form("machine_form"):
 
-st.markdown(
-    '<div class="main-title">⚙️ Machine Failure Detection</div>',
-    unsafe_allow_html=True
-)
+    col1, col2 = st.columns(2)
 
-st.markdown(
-    '<div class="subtitle">AI-powered predictive maintenance system | '
-    'Predict machine failure before it happens.</div>',
-    unsafe_allow_html=True
-)
+    with col1:
+        air_temp = st.number_input(
+            "Air Temperature (K)",
+            min_value=295.0,
+            max_value=310.0,
+            value=300.0,
+            step=0.1
+        )
 
-# -----------------------------------------
-# TOP METRICS
-# -----------------------------------------
+        process_temp = st.number_input(
+            "Process Temperature (K)",
+            min_value=306.0,
+            max_value=320.0,
+            value=310.0,
+            step=0.1
+        )
 
-col1, col2, col3 = st.columns(3)
+        rotational_speed = st.number_input(
+            "Rotational Speed (rpm)",
+            min_value=500,
+            max_value=4000,
+            value=1500
+        )
 
-with col1:
-    st.markdown("""
-    <div class="metric-card">
-        <div class="metric-label">MODEL ALGORITHM</div>
-        <div class="metric-value">Logistic Regression</div>
-    </div>
-    """, unsafe_allow_html=True)
+    with col2:
+        torque = st.number_input(
+            "Torque (Nm)",
+            min_value=1.0,
+            max_value=100.0,
+            value=40.0,
+            step=0.1
+        )
 
-with col2:
-    st.markdown("""
-    <div class="metric-card">
-        <div class="metric-label">CLASSIFICATION TYPE</div>
-        <div class="metric-value">Binary</div>
-    </div>
-    """, unsafe_allow_html=True)
+        tool_wear = st.number_input(
+            "Tool Wear (min)",
+            min_value=0,
+            max_value=300,
+            value=100
+        )
 
-with col3:
-    st.markdown("""
-    <div class="metric-card">
-        <div class="metric-label">INPUT FEATURES</div>
-        <div class="metric-value">05 Features</div>
-    </div>
-    """, unsafe_allow_html=True)
-
-
-st.divider()
-
-# -----------------------------------------
-# INPUT SECTION
-# -----------------------------------------
-
-st.markdown(
-    '<div class="section-title">🔧 Machine Parameters</div>',
-    unsafe_allow_html=True
-)
-
-st.write("Enter machine operating parameters to analyze its failure risk.")
-
-col1, col2 = st.columns(2)
-
-with col1:
-
-    air_temp = st.number_input(
-        "🌡️ Air Temperature (K)",
-        min_value=250.0,
-        max_value=350.0,
-        value=298.1,
-        step=0.1
+    submit = st.form_submit_button(
+        "🔍 Predict Machine Condition"
     )
 
-    process_temp = st.number_input(
-        "🔥 Process Temperature (K)",
-        min_value=250.0,
-        max_value=400.0,
-        value=308.6,
-        step=0.1
-    )
+# ---------------- PREDICTION ----------------
 
-    rotational_speed = st.number_input(
-        "⚙️ Rotational Speed (RPM)",
-        min_value=0,
-        max_value=5000,
-        value=1500,
-        step=10
-    )
+if submit:
 
-with col2:
+    feature_names = [
+        'Air temperature [K]',
+        'Process temperature [K]',
+        'Rotational speed [rpm]',
+        'Torque [Nm]',
+        'Tool wear [min]'
+    ]
 
-    torque = st.number_input(
-        "🔩 Torque (Nm)",
-        min_value=0.0,
-        max_value=150.0,
-        value=40.0,
-        step=0.5
-    )
-
-    tool_wear = st.number_input(
-        "🛠️ Tool Wear (Minutes)",
-        min_value=0,
-        max_value=300,
-        value=100,
-        step=1
-    )
-
-
-st.divider()
-
-# -----------------------------------------
-# PREDICTION
-# -----------------------------------------
-
-st.markdown(
-    '<div class="section-title">🚀 Failure Risk Analysis</div>',
-    unsafe_allow_html=True
-)
-
-if st.button("🔍 ANALYZE MACHINE CONDITION"):
-
-    # Feature order must match model training order
-    input_data = np.array([[
+    input_data = pd.DataFrame([[
         air_temp,
         process_temp,
         rotational_speed,
         torque,
         tool_wear
-    ]])
+    ]], columns=feature_names)
 
-    try:
+    # Apply the same scaler used during training
+    scaled_data = scaler.transform(input_data)
 
-        prediction = model.predict(input_data)[0]
+    # Predict machine condition
+    prediction = int(model.predict(scaled_data)[0])
 
-        probabilities = model.predict_proba(input_data)[0]
+    # Get failure probability using correct class index
+    failure_index = list(model.classes_).index(1)
 
-        # Find probability of failure (class 1)
-        failure_index = list(model.classes_).index(1)
+    failure_probability = model.predict_proba(
+        scaled_data
+    )[0][failure_index] * 100
 
-        failure_probability = probabilities[failure_index] * 100
+    normal_probability = 100 - failure_probability
 
-        normal_probability = 100 - failure_probability
+    st.divider()
+    st.subheader("📈 Prediction Results")
 
-        st.divider()
+    col1, col2, col3 = st.columns(3)
 
-        result_col1, result_col2 = st.columns(2)
-
-        with result_col1:
-
-            st.markdown("""
-            <div class="metric-card">
-                <div class="metric-label">FAILURE PROBABILITY</div>
-                <div class="metric-value">
-            """ + f"{failure_probability:.2f}%" + """
-                </div>
-            </div>
-            """, unsafe_allow_html=True)
-
-        with result_col2:
-
-            st.markdown("""
-            <div class="metric-card">
-                <div class="metric-label">NORMAL PROBABILITY</div>
-                <div class="metric-value">
-            """ + f"{normal_probability:.2f}%" + """
-                </div>
-            </div>
-            """, unsafe_allow_html=True)
-
-        st.markdown("### 📊 Prediction Confidence")
-
-        st.progress(float(failure_probability / 100))
-
-        st.caption(
-            f"Estimated failure probability: {failure_probability:.2f}%"
+    with col1:
+        st.metric(
+            "Failure Probability",
+            f"{failure_probability:.2f}%"
         )
 
-        if prediction == 1:
+    with col2:
+        st.metric(
+            "Normal Probability",
+            f"{normal_probability:.2f}%"
+        )
 
-            st.markdown(f"""
-            <div class="result-card danger-card">
-                <div class="result-heading">
-                    ⚠️ MACHINE FAILURE DETECTED
-                </div>
-                <p class="result-description">
-                    The model predicts a machine failure.
-                    Immediate inspection is recommended.
-                </p>
-            </div>
-            """, unsafe_allow_html=True)
+    with col3:
+        st.metric(
+            "Model Prediction",
+            "Failure" if prediction == 1 else "Normal"
+        )
 
-            st.error("Recommended Action: Inspect the machine and its operating conditions.")
+    # ---------------- RESULT CARD ----------------
 
-        else:
+    if prediction == 1:
 
-            st.markdown(f"""
-            <div class="result-card success-card">
-                <div class="result-heading">
-                    ✅ MACHINE OPERATING NORMALLY
-                </div>
-                <p class="result-description">
-                    The model predicts no machine failure
-                    under the given operating parameters.
-                </p>
-            </div>
-            """, unsafe_allow_html=True)
+        st.error(
+            "⚠️ MACHINE FAILURE DETECTED"
+        )
 
-            st.success("Recommended Action: Continue regular monitoring and maintenance.")
+        st.warning(
+            "The model predicts that the machine "
+            "may experience a failure. Inspection is recommended."
+        )
 
-        # -----------------------------------------
-        # INPUT SUMMARY
-        # -----------------------------------------
+    else:
 
-        st.divider()
+        st.success(
+            "✅ NO MACHINE FAILURE PREDICTED"
+        )
 
-        st.markdown("### 📋 Machine Input Summary")
+        st.info(
+            "The model predicts that the machine "
+            "is operating without a predicted failure."
+        )
 
-        summary_col1, summary_col2 = st.columns(2)
+    # ---------------- PROBABILITY CHART ----------------
 
-        with summary_col1:
-            st.write(f"Air Temperature: {air_temp} K")
-            st.write(f"Process Temperature: {process_temp} K")
-            st.write(f"Rotational Speed: {rotational_speed} RPM")
+    st.subheader("Failure Probability Analysis")
 
-        with summary_col2:
-            st.write(f"Torque: {torque} Nm")
-            st.write(f"Tool Wear: {tool_wear} Minutes")
+    fig = go.Figure(
+        go.Indicator(
+            mode="gauge+number",
+            value=failure_probability,
+            number={"suffix": "%"},
+            title={"text": "Failure Probability"},
+            gauge={
+                "axis": {"range": [0, 100]},
+                "bar": {"color": "#38BDF8"},
+                "steps": [
+                    {"range": [0, 30], "color": "#166534"},
+                    {"range": [30, 70], "color": "#854D0E"},
+                    {"range": [70, 100], "color": "#991B1B"}
+                ]
+            }
+        )
+    )
 
-    except Exception as e:
+    fig.update_layout(
+        height=350,
+        paper_bgcolor="#111827",
+        font_color="white"
+    )
 
-        st.error(f"Prediction Error: {e}")
+    st.plotly_chart(fig, use_container_width=True)
 
+    # ---------------- INPUT SUMMARY ----------------
 
-# -----------------------------------------
-# FOOTER
-# -----------------------------------------
+    with st.expander("View Entered Sensor Details"):
+
+        st.dataframe(
+            input_data,
+            use_container_width=True
+        )
 
 st.divider()
 
 st.markdown(
-    "<center style='color:#64748b;'>"
-    "Machine Failure Detection System | Powered by Machine Learning"
+    "<center style='color:#64748B'>"
+    "Machine Failure Detection | Powered by Machine Learning"
     "</center>",
     unsafe_allow_html=True
 )
